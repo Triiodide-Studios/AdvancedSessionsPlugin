@@ -16,12 +16,13 @@ UFindSessionsCallbackProxyAdvanced::UFindSessionsCallbackProxyAdvanced(const FOb
 	bIsOnSecondSearch = false;
 }
 
-UFindSessionsCallbackProxyAdvanced* UFindSessionsCallbackProxyAdvanced::FindSessionsAdvanced(UObject* WorldContextObject, class APlayerController* PlayerController, int MaxResults, bool bUseLAN, EBPServerPresenceSearchType ServerTypeToSearch, const TArray<FSessionsSearchSetting> &Filters, bool bEmptyServersOnly, bool bNonEmptyServersOnly, bool bSecureServersOnly, bool bSearchLobbies, int MinSlotsAvailable)
+UFindSessionsCallbackProxyAdvanced* UFindSessionsCallbackProxyAdvanced::FindSessionsAdvanced(UObject* WorldContextObject, class APlayerController* PlayerController, int MaxResults, bool bUseLAN, EBPServerPresenceSearchType ServerTypeToSearch, const TArray<FSessionsSearchSetting> &Filters, bool bEmptyServersOnly, bool bNonEmptyServersOnly, bool bSecureServersOnly, bool bSearchLobbies, int MinSlotsAvailable, int32 LobbyDistanceFilter)
 {
 	UFindSessionsCallbackProxyAdvanced* Proxy = NewObject<UFindSessionsCallbackProxyAdvanced>();	
 	Proxy->PlayerControllerWeakPtr = PlayerController;
 	Proxy->bUseLAN = bUseLAN;
 	Proxy->MaxResults = MaxResults;
+	Proxy->LobbyDistanceFilter = LobbyDistanceFilter;
 	Proxy->WorldContextObject = WorldContextObject;
 	Proxy->SearchSettings = Filters;
 	Proxy->ServerSearchType = ServerTypeToSearch;
@@ -51,6 +52,7 @@ void UFindSessionsCallbackProxyAdvanced::Activate()
 
 			SearchObject = MakeShareable(new FOnlineSessionSearch);
 			SearchObject->MaxSearchResults = MaxResults;
+			SearchObject->LobbyDistanceFilter = LobbyDistanceFilter;
 			SearchObject->bIsLanQuery = bUseLAN;
 			//SearchObject->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
@@ -136,6 +138,7 @@ void UFindSessionsCallbackProxyAdvanced::Activate()
 
 				SearchObjectDedicated = MakeShareable(new FOnlineSessionSearch);
 				SearchObjectDedicated->MaxSearchResults = MaxResults;
+				SearchObjectDedicated->LobbyDistanceFilter = LobbyDistanceFilter;
 				SearchObjectDedicated->bIsLanQuery = bUseLAN;
 
 				FOnlineSearchSettingsEx DedicatedOnly = tem;
