@@ -5,10 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 
-#if PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX
-
-//#include "OnlineSubsystemSteam.h"
-//#include "OnlineSubsystemSteamPrivate.h"
+#if (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX) && STEAM_SDK_INSTALLED
 
 #include <steam/steam_api.h>
 
@@ -41,14 +38,27 @@ public:
 		void Initialize(USteamNotificationsSubsystem* MyParent)
 		{
 			ParentSubsystem = MyParent;
+
+#if (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX) && STEAM_SDK_INSTALLED
+			OnExternalUITriggeredCallback.Register(this, &USteamNotificationsSubsystem::cSteamEventsStore::OnExternalUITriggered);
+#endif
 		}
 
-#if PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX
-		cSteamEventsStore() :
-		OnExternalUITriggeredCallback(this, &cSteamEventsStore::OnExternalUITriggered)
+		void UnInitialize(USteamNotificationsSubsystem* MyParent)
+		{
+#if (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX) && STEAM_SDK_INSTALLED
+			OnExternalUITriggeredCallback.Unregister();
+#endif
+		}
+
+#if (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX) && STEAM_SDK_INSTALLED
+		cSteamEventsStore()
+		{}
+			//:
+		/*OnExternalUITriggeredCallback(this, &cSteamEventsStore::OnExternalUITriggered)
 		{
 
-		}
+		}*/
 #else
 		//cSteamEventsStore()
 		//{
@@ -59,8 +69,9 @@ public:
 		//~cSteamEventsStore(){}
 
 	private:
-#if PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX
-		STEAM_CALLBACK(cSteamEventsStore, OnExternalUITriggered, GameOverlayActivated_t, OnExternalUITriggeredCallback);
+#if (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX) && STEAM_SDK_INSTALLED
+		//STEAM_CALLBACK(cSteamEventsStore, OnExternalUITriggered, GameOverlayActivated_t, OnExternalUITriggeredCallback);
+		STEAM_CALLBACK_MANUAL(cSteamEventsStore, OnExternalUITriggered, GameOverlayActivated_t, OnExternalUITriggeredCallback);
 #endif
 	};
 
@@ -75,11 +86,11 @@ public:
 	/** Implement this for deinitialization of instances of the system */
 	virtual void Deinitialize() override
 	{
-
+		MyEvents.UnInitialize(this);
 	}
 };
 
-#if PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX
+#if (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX) && STEAM_SDK_INSTALLED
 void USteamNotificationsSubsystem::cSteamEventsStore::OnExternalUITriggered(GameOverlayActivated_t* CallbackData)
 {
 	if (ParentSubsystem)
